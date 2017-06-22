@@ -12,14 +12,14 @@
 #include <windows.h>
 
 //Todo: Write Function Header Here
-
-extern "C" __declspec(dllexport) bool read(UCHAR* buf, LONG* num);
-extern "C" __declspec(dllexport) void write(UCHAR* buf, LONG num);
-extern "C" __declspec(dllexport) bool read_until(UCHAR* buf, LONG* num, LONG timeout);
-extern "C" __declspec(dllexport) ULONG GetPara(BYTE option);
-extern "C" __declspec(dllexport) void flushInputBuffer();
-extern "C" __declspec(dllexport) void ResetInputEnpt();
+extern "C" __declspec(dllexport) ULONG GetPara(BYTE dev_index, BYTE option);
+extern "C" __declspec(dllexport) void flushInputBuffer(BYTE dev_index);
+extern "C" __declspec(dllexport) void ResetInputEnpt(BYTE dev_index);
+extern "C" __declspec(dllexport) bool read(BYTE dev_index, UCHAR* buf, LONG* num);
+extern "C" __declspec(dllexport) bool read_until(BYTE dev_index, UCHAR* buf, LONG* num, LONG timeout);
+extern "C" __declspec(dllexport) void write(BYTE dev_index, UCHAR* buf, LONG num);
 extern "C" __declspec(dllexport) BOOL open(BYTE index);
+
 // TODO: 在此处引用程序需要的其他头文件
 #include "stdio.h"
 #include "CyAPI.h"

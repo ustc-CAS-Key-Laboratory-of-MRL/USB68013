@@ -78,6 +78,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>E:\Cypress\Cypress Suite USB 3.4.7\CyAPI\inc;$(IncludePath)</IncludePath>
+    <ReferencePath>E:\Cypress\Cypress Suite USB 3.4.7\CyAPI\lib\x64;E:\Cypress\Cypress Suite USB 3.4.7\CyAPI\lib\x86;$(ReferencePath)</ReferencePath>
+    <LibraryPath>E:\Cypress\Cypress Suite USB 3.4.7\CyAPI\lib\x86;E:\Cypress\Cypress Suite USB 3.4.7\CyAPI\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -122,6 +125,8 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>legacy_stdio_definitions.lib;CyAPI.lib;E:\Cypress\Cypress Suite USB 3.4.7\CyAPI\lib\x86\CyAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -176,9 +181,6 @@
     <ClCompile Include="gen_func.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="x64.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\..\..\..\..\lib\x64\CyAPI.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

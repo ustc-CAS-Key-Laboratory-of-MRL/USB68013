@@ -3,39 +3,39 @@
 #include "stdafx.h"
 
 
-CCyUSBDevice *USBDevice = new CCyUSBDevice(NULL);
+CCyUSBDevice *USBDevice[16] = {NULL};
 ULONG BulkInSize = 4096;
 ULONG BulkOutSize = 4096;
 #define TimeoutConst 1000
 
-ULONG GetPara(BYTE option){
-	if (option == 0) return USBDevice->BulkInEndPt->GetXferSize( );
-	else if (option == 1) return USBDevice->BulkInEndPt->GetXferSize( );
-	else if (option == 2) return USBDevice->BulkInEndPt->TimeOut;
-	else if (option == 3) return USBDevice->BulkOutEndPt->TimeOut;
-	else if (option == 4) return USBDevice->DeviceCount();
+ULONG GetPara(BYTE dev_index, BYTE option){
+	if (option == 0) return USBDevice[dev_index]->BulkInEndPt->GetXferSize( );
+	else if (option == 1) return USBDevice[dev_index]->BulkInEndPt->GetXferSize( );
+	else if (option == 2) return USBDevice[dev_index]->BulkInEndPt->TimeOut;
+	else if (option == 3) return USBDevice[dev_index]->BulkOutEndPt->TimeOut;
+	else if (option == 4) return USBDevice[dev_index]->DeviceCount();
 	else return 10;
 }
 
-void flushInputBuffer(){
+void flushInputBuffer(BYTE dev_index){
 	/*UCHAR *buffer = new UCHAR[BulkInSize];
 	LONG readnum = BulkInSize;
-	if (USBDevice->BulkInEndPt){
-		while (USBDevice->BulkInEndPt->XferData(buffer, readnum));
+	if (USBDevice[dev_index]->BulkInEndPt){
+		while (USBDevice[dev_index]->BulkInEndPt->XferData(buffer, readnum));
 	}
-	USBDevice->BulkInEndPt->Reset();*/
-	USBDevice ->Reset();
-	//while (! USBDevice ->Resume());
+	USBDevice[dev_index]->BulkInEndPt->Reset();*/
+	USBDevice[dev_index] ->Reset();
+	//while (! USBDevice[dev_index] ->Resume());
 }
-void ResetInputEnpt(){
-	USBDevice->BulkInEndPt->Reset();
+void ResetInputEnpt(BYTE dev_index){
+	USBDevice[dev_index]->BulkInEndPt->Reset();
 }
-bool read(UCHAR* buf, LONG* num){
+bool read(BYTE dev_index, UCHAR* buf, LONG* num){
 	//UCHAR *buffer = new UCHAR[BulkInSize];
 	LONG readnum = BulkInSize;
 	bool temp;
-	if (USBDevice->BulkInEndPt){
-		temp = USBDevice->BulkInEndPt->XferData(buf, readnum);
+	if (USBDevice[dev_index]->BulkInEndPt){
+		temp = USBDevice[dev_index]->BulkInEndPt->XferData(buf, readnum);
 		//strcpy_s((char *)buf, readnum, (const char *)buffer);
 		//for (int i=0;i<readnum;i++) buf[i]=buffer[i];
 		*num = readnum;
@@ -45,7 +45,7 @@ bool read(UCHAR* buf, LONG* num){
 }
 
 
-bool read_until(UCHAR* buf, LONG* num, LONG timeout){
+bool read_until(BYTE dev_index, UCHAR* buf, LONG* num, LONG timeout){
 	long beginTime = clock();
 	long rxnum = 0;
 	long temp=0;
@@ -58,7 +58,7 @@ bool read_until(UCHAR* buf, LONG* num, LONG timeout){
 		}
 		temp = *num-rxnum;
 		if (temp > BulkInSize) temp =BulkInSize;
-		if (read(buf+rxnum, &temp)){
+		if (read(dev_index, buf+rxnum, &temp)){
 		//if (read(buffer, &temp)){
 		//	//printf("Read succeed.");
 		//	for (int i=0; i<temp; i++)
@@ -68,16 +68,16 @@ bool read_until(UCHAR* buf, LONG* num, LONG timeout){
 
 		//else
 		//{
-			//USBDevice ->BulkInEndPt->Reset();
-			//USBDevice ->BulkInEndPt->Abort();
+			//USBDevice[dev_index] ->BulkInEndPt->Reset();
+			//USBDevice[dev_index] ->BulkInEndPt->Abort();
 		//}
 	}
 	return true;
 }
 
 
-void write(UCHAR* buf, LONG num){
-	if (USBDevice->BulkOutEndPt)
+void write(BYTE dev_index, UCHAR* buf, LONG num){
+	if (USBDevice[dev_index]->BulkOutEndPt)
 		if (num>4096){
 			//UCHAR *buffer = new UCHAR[BulkOutSize];
 			LONG remain = num;
@@ -86,20 +86,20 @@ void write(UCHAR* buf, LONG num){
 			while (remain > 4096)
 			{
 				temp = 4096;
-				USBDevice->BulkOutEndPt->XferData(buf+ptr, temp);
+				USBDevice[dev_index]->BulkOutEndPt->XferData(buf+ptr, temp);
 				remain -= 4096;
 				ptr += 4096;
 			}
-			if (remain > 0) USBDevice->BulkOutEndPt->XferData(buf+ptr, remain);
+			if (remain > 0) USBDevice[dev_index]->BulkOutEndPt->XferData(buf+ptr, remain);
 		}
-		else	USBDevice->BulkOutEndPt->XferData(buf, num);
+		else	USBDevice[dev_index]->BulkOutEndPt->XferData(buf, num);
 }
 
 BOOL open(BYTE index){
-	BYTE nUSB=USBDevice->DeviceCount();
+	BYTE nUSB=USBDevice[0]->DeviceCount();
 	if (index >= nUSB) return false;
-	USBDevice->Close();
-	return USBDevice->Open(index);
+	USBDevice[index]->Close();
+	return USBDevice[index]->Open(index);
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,
@@ -110,30 +110,42 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		printf ("Number of Device:%d",USBDevice->DeviceCount());
-			if (USBDevice->DeviceCount())
+		USBDevice[0] = new CCyUSBDevice(NULL);
+		printf ("Number of Device:%d",USBDevice[0]->DeviceCount());
+			if (USBDevice[0]->DeviceCount())
 			{
+				
+
 				// search for all connected devices, and add them to the device
-				USBDevice->Open(0);
+				USBDevice[0]->Open(0);
 				//printf ("%X, %X", USBDevice->ProductID, USBDevice->VendorID);
 
-				USBDevice->BulkInEndPt->TimeOut = TimeoutConst;
-				USBDevice->BulkInEndPt->SetXferSize(BulkInSize);
+				USBDevice[0]->BulkInEndPt->TimeOut = TimeoutConst;
+				USBDevice[0]->BulkInEndPt->SetXferSize(BulkInSize);
 				
-				USBDevice->BulkOutEndPt->TimeOut = TimeoutConst;
-				USBDevice->BulkOutEndPt->SetXferSize(BulkOutSize);
-				/*for (int i = 0; i < USBDevice->DeviceCount(); i++)
+				USBDevice[0]->BulkOutEndPt->TimeOut = TimeoutConst;
+				USBDevice[0]->BulkOutEndPt->SetXferSize(BulkOutSize);
+				for (int i = 1; i < USBDevice[i]->DeviceCount(); i++)
 				{
-					USBDevice->Open(i);
-				}*/
+					USBDevice[i] = new CCyUSBDevice(NULL);
+					USBDevice[i]->Open(i);
+					USBDevice[i]->BulkInEndPt->TimeOut = TimeoutConst;
+					USBDevice[i]->BulkInEndPt->SetXferSize(BulkInSize);
+
+					USBDevice[i]->BulkOutEndPt->TimeOut = TimeoutConst;
+					USBDevice[i]->BulkOutEndPt->SetXferSize(BulkOutSize);
 				}
+			}
 		break;
 	case DLL_THREAD_ATTACH:
 		break;
 	case DLL_THREAD_DETACH:
 		break;
 	case DLL_PROCESS_DETACH:
-		USBDevice->Close();
+		for (int i = 0; i < USBDevice[0]->DeviceCount(); i++)
+		{
+			USBDevice[i]->Close();
+		}
 		break;
 	}
 	return TRUE;
