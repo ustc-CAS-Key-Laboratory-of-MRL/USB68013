@@ -111,7 +111,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	{
 	case DLL_PROCESS_ATTACH:
 		USBDevice[0] = new CCyUSBDevice(NULL);
-		printf ("Number of Device:%d",USBDevice[0]->DeviceCount());
+		printf ("Number of Device:%d\n",USBDevice[0]->DeviceCount());
 			if (USBDevice[0]->DeviceCount())
 			{
 				
@@ -125,7 +125,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 				
 				USBDevice[0]->BulkOutEndPt->TimeOut = TimeoutConst;
 				USBDevice[0]->BulkOutEndPt->SetXferSize(BulkOutSize);
-				for (int i = 1; i < USBDevice[i]->DeviceCount(); i++)
+				for (int i = 1; i < USBDevice[0]->DeviceCount(); i++)
 				{
 					USBDevice[i] = new CCyUSBDevice(NULL);
 					USBDevice[i]->Open(i);
